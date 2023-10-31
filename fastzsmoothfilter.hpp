@@ -20,7 +20,7 @@ namespace FPCFilter {
 
     class FastZSmoothFilter {
         typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<
-            double, PointCloud, double>, PointCloud, 3, std::size_t> KDTree;
+            double, PointCloud, double>, PointCloud, 2, std::size_t> KDTree;
 
         std::ostream& log;
         bool isVerbose;
@@ -56,7 +56,7 @@ namespace FPCFilter {
 
             auto start = std::chrono::steady_clock::now();
         
-            tree = std::make_unique<KDTree>(3, pointCloud, nanoflann::KDTreeSingleIndexAdaptorParams(100));
+            tree = std::make_unique<KDTree>(2, pointCloud, nanoflann::KDTreeSingleIndexAdaptorParams(100));
             tree->buildIndex();
             if (this->isVerbose) {
                 const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
@@ -78,7 +78,7 @@ namespace FPCFilter {
                     newValuesZ[n] = point.z;
                     continue;
                 }
-                newValuesZ[n] = z_median(pointCloud, indices);
+                newValuesZ[n] = z_median(pointCloud, indices, file.points[n]);
             }
             #pragma omp parallel for
             for (auto n =0; n < np; n++) {
@@ -87,11 +87,13 @@ namespace FPCFilter {
         }
 
     private:
-        double z_median(PointCloud &pointCloud, std::vector<size_t> &indices) const {
+        double z_median(PointCloud &pointCloud, std::vector<size_t> &indices, PlyPoint& point) const {
             std::vector<double> z_values;
             z_values.reserve(indices.size());
             for (auto i : indices) {
-                z_values.push_back(pointCloud.pts[i].z);
+                if (fabs(pointCloud.pts[i].z - point.z) < radius * 20.0f) {
+                    z_values.push_back(pointCloud.pts[i].z);
+                }
             }
             if (z_values.size() % 2 == 0) {
                 std::nth_element(z_values.begin(), z_values.begin() + z_values.size() / 2, z_values.end());
