@@ -29,14 +29,14 @@ namespace FPCFilter {
         
         std::unique_ptr<KDTree> tree;
 
-        const nanoflann::SearchParams params;
+        const nanoflann::SearchParameters params;
 
     public:
         FastZSmoothFilter(double radius, std::ostream& logstream, bool isVerbose) : radius(radius), log(logstream), isVerbose(isVerbose), params(10) {
         }
 
         void radiusSearch(PlyPoint& point, double radius, std::vector<size_t> &indices) const {
-            std::vector<std::pair<size_t, double>> indices_dists;
+            std::vector<nanoflann::ResultItem<size_t, double>> indices_dists;
             std::array<double, 3> pt = {point.x, point.y, point.z};
             const size_t nMatches = tree->radiusSearch(&pt[0], radius, indices_dists, this->params);
             indices.resize(nMatches);
@@ -46,7 +46,7 @@ namespace FPCFilter {
         }
 
         void run(PlyFile& file) {
-            PointCloud pointCloud(file.points);
+            PointCloudWeighted pointCloud(file.points, 1.0, 1.0, 0.1);
             size_t np = pointCloud.pts.size();
             if (np == 0) {
                 return;
@@ -56,7 +56,7 @@ namespace FPCFilter {
 
             auto start = std::chrono::steady_clock::now();
         
-            tree = std::make_unique<KDTree>(3, pointCloud, nanoflann::KDTreeSingleIndexAdaptorParams(100));
+            tree = std::make_unique<KDTree>(3, pointCloud, nanoflann::KDTreeSingleIndexAdaptorParams(100, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
             tree->buildIndex();
             if (this->isVerbose) {
                 const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
@@ -68,11 +68,11 @@ namespace FPCFilter {
             for (auto n =0; n < np; n++) {
                 std::vector<size_t> indices;
                 PlyPoint& point = file.points[n];
-                // only apply to points at near horizontal surfaces, approximated 11 degrees
-                if (file.extras[n].nz <= APPROX_HORIZON) {
-                    newValuesZ[n] = point.z;
-                    continue;
-                }
+//                // only apply to points at near horizontal surfaces, approximated 11 degrees
+//                if (file.extras[n].nz <= APPROX_HORIZON) {
+//                    newValuesZ[n] = point.z;
+//                    continue;
+//                }
                 radiusSearch(point, radius, indices);
                 if (indices.empty()) {
                     newValuesZ[n] = point.z;

@@ -16,6 +16,7 @@
 #include "fastsamplefilter.hpp"
 #include "fastoutlierfilter.hpp"
 #include "fastzsmoothfilter.hpp"
+#include "voxelsmoothfilter.hpp"
 
 namespace fs = std::filesystem;
 
@@ -92,6 +93,14 @@ namespace FPCFilter
 
 			FastOutlierFilter filter(std, meank, this->log, this->isVerbose, stats);
 
+			filter.run(*this->ply);
+		}
+
+		void voxelsmoothfilter(double radius) {
+			if (!this->isLoaded)
+				this->load();
+				
+			VoxelSmoothFilter filter(radius, this->log, this->isVerbose);
 			filter.run(*this->ply);
 		}
 

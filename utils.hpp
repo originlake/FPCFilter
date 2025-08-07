@@ -32,7 +32,7 @@ namespace FPCFilter {
             else return pts[idx].z;
         }
 
-        double kdtree_distance(const float* p1, const size_t p2_idx,
+        virtual double kdtree_distance(const float* p1, const size_t p2_idx,
             size_t /*numDims*/) const
         {
             double d0 = p1[0] - pts[p2_idx].x;
@@ -48,6 +48,22 @@ namespace FPCFilter {
         //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
         template <class BBOX>
         bool kdtree_get_bbox(BBOX& /* bb */) const { return false; }
+    };
+
+    struct PointCloudWeighted: public PointCloud {
+        double w1sqr, w2sqr, w3sqr;
+        // Weighted distance computation
+        PointCloudWeighted(std::vector<PlyPoint>& points, double w1 = 1.0, double w2 = 1.0, double w3 = 1.0) : PointCloud(points), w1sqr(w1 * w1), w2sqr(w2 * w2), w3sqr(w3 * w3) {
+        }
+
+        double kdtree_distance(const float* p1, const size_t p2_idx,
+                               size_t /*numDims*/) const override
+        {
+            double d0 = p1[0] - pts[p2_idx].x;
+            double d1 = p1[1] - pts[p2_idx].y;
+            double d3 = p1[2] - pts[p2_idx].z;
+            return (d0 * d0 * w1sqr + d1 * d1 * w2sqr + d3 * d3 * w3sqr);
+        }
     };
 }
 

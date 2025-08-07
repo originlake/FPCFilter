@@ -26,12 +26,12 @@ namespace FPCFilter {
 
         std::unique_ptr<KDTree> tree;
 
-        const nanoflann::SearchParams params;
+        const nanoflann::SearchParameters params;
         nlohmann::json *stats;
 
     public:
         FastOutlierFilter(double std, int meanK, std::ostream &logstream, bool isVerbose, nlohmann::json *stats) : 
-            multiplier(std), meanK(meanK), isVerbose(isVerbose), log(logstream), params(nanoflann::SearchParams(10)), stats(stats) {}
+            multiplier(std), meanK(meanK), isVerbose(isVerbose), log(logstream), params(nanoflann::SearchParameters()), stats(stats) {}
 
         void knnSearch(PlyPoint& point, size_t k,
             std::vector<size_t>& indices, std::vector<double>& sqr_dists) const
@@ -51,7 +51,7 @@ namespace FPCFilter {
 
             auto start = std::chrono::steady_clock::now();
 
-            tree = std::make_unique<KDTree>(3, pointCloud, nanoflann::KDTreeSingleIndexAdaptorParams(100));
+            tree = std::make_unique<KDTree>(3, pointCloud, nanoflann::KDTreeSingleIndexAdaptorParams(100, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
             tree->buildIndex();
 
             if (this->isVerbose) {

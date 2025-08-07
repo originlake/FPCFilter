@@ -60,6 +60,20 @@ int main(const int argc, char** argv)
 
 		} else		
 			std::cout << std::endl << " ?> Skipping crop" << std::endl;
+
+		if (parameters.isSmoothRequested)
+		{
+			std::cout << std::endl << " -> Smoothing " << std::endl << std::endl;;
+
+			const auto start = std::chrono::steady_clock::now();
+
+			pipeline.smooth(parameters.smooth_radius.value());
+
+			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
+
+			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
+		}else
+			std::cout << std::endl << " ?> Skipping Z smoothing" << std::endl;
 		
 		if (parameters.isSampleRequested)
 		{
@@ -68,14 +82,14 @@ int main(const int argc, char** argv)
 
 			const auto start = std::chrono::steady_clock::now();
 
-			pipeline.sample(parameters.radius.value());
+			pipeline.voxelsmoothfilter(parameters.radius.value());
 
 			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
 
 			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
 
 		}
-		else		
+		else
 			std::cout << std::endl << " ?> Skipping sampling" << std::endl;
 		
 		if (parameters.isFilterRequested)
@@ -95,31 +109,16 @@ int main(const int argc, char** argv)
 		else		
 			std::cout << std::endl << " ?> Skipping statistical filtering" << std::endl;
 
-		if (parameters.isSmoothRequested)
 		{
-			std::cout << std::endl << " -> Smoothing " << std::endl << std::endl;;
+		 	std::cout << std::endl << " -> Writing output" << std::endl << std::endl;
 
-			const auto start = std::chrono::steady_clock::now();
+		 	const auto start = std::chrono::steady_clock::now();
 
-			pipeline.smooth(parameters.smooth_radius.value());
+		 	pipeline.write(parameters.output);
 
-			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
+		 	const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
 
-			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
-		} 
-		else
-			std::cout << std::endl << " ?> Skipping Z smoothing" << std::endl;
-
-		{
-			std::cout << std::endl << " -> Writing output" << std::endl << std::endl;
-
-			const auto start = std::chrono::steady_clock::now();
-
-			pipeline.write(parameters.output);
-
-			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
-
-			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
+		 	std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
 		}
 
 		const std::chrono::duration<double> pipelineDiff = std::chrono::steady_clock::now() - pipelineStart;
