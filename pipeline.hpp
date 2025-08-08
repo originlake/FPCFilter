@@ -13,10 +13,11 @@
 #include "ply.hpp"
 #include "common.hpp"
 
-#include "fastsamplefilter.hpp"
-#include "fastoutlierfilter.hpp"
-#include "fastzsmoothfilter.hpp"
-#include "voxelsmoothfilter.hpp"
+#include "filters/fastsamplefilter.hpp"
+#include "filters/fastoutlierfilter.hpp"
+#include "filters/fastzsmoothfilter.hpp"
+#include "filters/voxelsamplefilter.hpp"
+#include "filters/faststats.h"
 
 namespace fs = std::filesystem;
 
@@ -51,6 +52,9 @@ namespace FPCFilter
 				const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
 				log << " ?> Loaded " << this->ply->points.size() << " points in " << diff.count() << "s" << std::endl;
 			}
+
+			FastStats fastStats(log, isVerbose);
+			fastStats.run(*this->ply);
 		}
 
 		void crop(const Polygon &p)
@@ -81,7 +85,8 @@ namespace FPCFilter
 			if (!this->isLoaded)
 				this->load();
 
-			FastSampleFilter filter(radius, this->log, this->isVerbose);
+//			FastSampleFilter filter(radius, this->log, this->isVerbose);
+			VoxelSampleFilter filter(radius, this->log, this->isVerbose);
 
 			filter.run(*this->ply);
 		}
@@ -91,26 +96,27 @@ namespace FPCFilter
 			if (!this->isLoaded)
 				this->load();
 
-			FastOutlierFilter filter(std, meank, this->log, this->isVerbose, stats);
+			FastOutlierFilter filter(std, meank, this->log, this->isVerbose);
 
 			filter.run(*this->ply);
 		}
 
-		void voxelsmoothfilter(double radius) {
-			if (!this->isLoaded)
-				this->load();
-				
-			VoxelSmoothFilter filter(radius, this->log, this->isVerbose);
-			filter.run(*this->ply);
-		}
-
-		void smooth(double radius) 
+		void smooth(double smooth_factor)
 		{
 			if (!this->isLoaded)
 				this->load();
 
-			FastZSmoothFilter filter(radius, this->log, this->isVerbose);
+			FastZSmoothFilter filter(this->ply->spacing * 4, this->log, this->isVerbose);
 			filter.run(*this->ply);
+		}
+
+		void runStats()
+		{
+			if (!this->isLoaded)
+				this->load();
+			FastStats fastStats(log, isVerbose);
+			fastStats.run(*this->ply);
+			(*stats)["spacing"] = this->ply->spacing;
 		}
 
 		void write(const std::string &target)

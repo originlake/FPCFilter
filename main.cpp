@@ -26,8 +26,8 @@ int main(const int argc, char** argv)
 			std::cout << "\tradius = " << std::setprecision(4) << parameters.radius.value() << std::endl;
 		if (parameters.meank.has_value())
 			std::cout << "\tmeanK = " << parameters.meank.value() << std::endl;
-		if (parameters.smooth_radius.has_value()) 
-			std::cout << "\tSmoothRadius = " << std::setprecision(4) << parameters.smooth_radius.value() << std::endl;
+		if (parameters.smooth_factor.has_value())
+			std::cout << "\tSmoothRadius = " << std::setprecision(4) << parameters.smooth_factor.value() << std::endl;
 
 		if (parameters.boundary.has_value()) 
 			std::cout << "\tboundary = " << parameters.boundary.value().getPoints().size() << " polygon vertexes" << std::endl;		
@@ -61,37 +61,6 @@ int main(const int argc, char** argv)
 		} else		
 			std::cout << std::endl << " ?> Skipping crop" << std::endl;
 
-		if (parameters.isSmoothRequested)
-		{
-			std::cout << std::endl << " -> Smoothing " << std::endl << std::endl;;
-
-			const auto start = std::chrono::steady_clock::now();
-
-			pipeline.smooth(parameters.smooth_radius.value());
-
-			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
-
-			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
-		}else
-			std::cout << std::endl << " ?> Skipping Z smoothing" << std::endl;
-		
-		if (parameters.isSampleRequested)
-		{
-
-			std::cout << std::endl << " -> Sampling" << std::endl << std::endl;
-
-			const auto start = std::chrono::steady_clock::now();
-
-			pipeline.voxelsmoothfilter(parameters.radius.value());
-
-			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
-
-			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
-
-		}
-		else
-			std::cout << std::endl << " ?> Skipping sampling" << std::endl;
-		
 		if (parameters.isFilterRequested)
 		{
 
@@ -106,8 +75,49 @@ int main(const int argc, char** argv)
 			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
 
 		}
-		else		
+		else
 			std::cout << std::endl << " ?> Skipping statistical filtering" << std::endl;
+
+		if (parameters.isSmoothRequested)
+		{
+			std::cout << std::endl << " -> Smoothing " << std::endl << std::endl;;
+
+			const auto start = std::chrono::steady_clock::now();
+
+			pipeline.smooth(parameters.smooth_factor.value());
+
+			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
+
+			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
+		}else
+			std::cout << std::endl << " ?> Skipping Z smoothing" << std::endl;
+
+		if (parameters.isSampleRequested)
+		{
+
+			std::cout << std::endl << " -> Sampling" << std::endl << std::endl;
+
+			const auto start = std::chrono::steady_clock::now();
+
+			pipeline.sample(parameters.radius.value());
+
+			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
+
+			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
+
+		}
+		else
+			std::cout << std::endl << " ?> Skipping sampling" << std::endl;
+
+		if (!parameters.stats.empty()) {
+			std::cout << std::endl << " -> Calculating statistics" << std::endl << std::endl;
+			const auto start = std::chrono::steady_clock::now();
+			pipeline.runStats();
+			const std::chrono::duration<double> diff = std::chrono::steady_clock::now() - start;
+			std::cout << " ?> Done in " << diff.count() << "s" << std::endl;
+		}
+		else
+			std::cout << std::endl << " ?> Skipping statistics" << std::endl;
 
 		{
 		 	std::cout << std::endl << " -> Writing output" << std::endl << std::endl;

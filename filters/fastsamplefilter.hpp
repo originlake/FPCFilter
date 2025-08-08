@@ -6,8 +6,8 @@
 #include <vector>
 #include <omp.h>
 
-#include "ply.hpp"
-#include "common.hpp"
+#include "../ply.hpp"
+#include "../common.hpp"
 
 namespace FPCFilter {
 
@@ -32,7 +32,6 @@ namespace FPCFilter {
     public:
         FastSampleFilter(double radius, std::ostream& logstream, bool isVerbose) : originX(0), originY(0), originZ(0), 
                 isVerbose(isVerbose), log(logstream), radius(radius), radiusSqr(radius * radius) {
-
             cell = 2.0 * radius / std::sqrt(3.0);
         }
 

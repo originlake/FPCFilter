@@ -9,9 +9,9 @@
 #include <chrono>
 #include <omp.h>
 
-#include "ply.hpp"
-#include "vendor/nanoflann.hpp"
-#include "utils.hpp"
+#include "../ply.hpp"
+#include "nanoflann.hpp"
+#include "../utils.hpp"
 
 #define APPROX_HORIZON 0.98
 

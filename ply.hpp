@@ -4,6 +4,7 @@
 #include <iostream>
 #include <filesystem>
 #include <vector>
+#include <cstdint>
 #include "FPCFilter.h"
 
 namespace FPCFilter {
@@ -76,6 +77,8 @@ namespace FPCFilter {
 	public:
 		std::vector<PlyExtra> extras;
 		std::vector<PlyPoint> points;
+		double minX, minY, minZ, maxX, maxY, maxZ;
+		double spacing;
 
         bool hasNormals() {
             return !extras.empty();
@@ -255,6 +258,18 @@ namespace FPCFilter {
 				extras.reserve(count);
 
 				if (filter) {
+					struct {
+						float x;
+						float y;
+						float z;
+						uint8_t red;
+						uint8_t green;
+						uint8_t blue;
+						float nx;
+						float ny;
+						float nz;
+						uint8_t views;
+					} point;
 
 					// Read points
 					for (auto i = 0; i < count; i++) {

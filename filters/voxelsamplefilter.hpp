@@ -19,15 +19,15 @@
 #include <omp.h>
 #include <immintrin.h>
 
-#include "ply.hpp"
-#include "vendor/nanoflann.hpp"
-#include "common.hpp"
-#include "utils.hpp"
+#include "../ply.hpp"
+#include "nanoflann.hpp"
+#include "../common.hpp"
+#include "../utils.hpp"
 
 
 namespace FPCFilter {
 
-    class VoxelSmoothFilter {
+    class VoxelSampleFilter {
         typedef nanoflann::KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<
             double, PointCloud, double>, PointCloud, 3, std::size_t> KDTree;
         using Voxel = PointXYZ<int>;
@@ -50,7 +50,7 @@ namespace FPCFilter {
         bool isVerbose;
 
     public:
-        VoxelSmoothFilter(double radius, std::ostream& logstream, bool isVerbose) : originX(0), originY(0), originZ(0),
+        VoxelSampleFilter(double radius, std::ostream& logstream, bool isVerbose) : originX(0), originY(0), originZ(0),
                 isVerbose(isVerbose), log(logstream), radius(radius), cell(radius * std::sqrt(3.0)) {
             radiusSqr = radius * radius;
         }
@@ -81,9 +81,12 @@ namespace FPCFilter {
                 std::cout << " ?> Done building index in " << diff.count() << "s" << std::endl;
             }
 
-            originX = points[0].x;
-            originY = points[0].y;
-            originZ = points[0].z;
+            originX = (file.minX + file.minX) / 2.0;
+            originY = (file.minY + file.minY) / 2.0;
+            originZ = (file.minZ + file.minZ) / 2.0;
+            originX = std::floor(originX / cell) * cell;
+            originY = std::floor(originY / cell) * cell;
+            originZ = std::floor(originZ / cell) * cell;
 
             std::vector<PlyPoint> newPoints;
             newPoints.reserve(voxels.size());

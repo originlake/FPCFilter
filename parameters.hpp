@@ -70,7 +70,7 @@ namespace FPCFilter
 		std::optional<double> radius;
 
 		bool isSmoothRequested = false;
-		std::optional<double> smooth_radius;
+		std::optional<double> smooth_factor;
 
 		int concurrency;
 		bool verbose;
@@ -91,7 +91,7 @@ namespace FPCFilter
 				("s,std", "Standard deviation threshold", cxxopts::value<double>())
 				("m,meank", "Mean number of neighbors", cxxopts::value<int>())
 				("r,radius", "Sample radius", cxxopts::value<double>())
-				("smooth_radius", "Sample radius for smoothing", cxxopts::value<double>())
+				("f,smooth_factor", "Control smooth radius based on factor of spacing", cxxopts::value<double>())
 				("c,concurrency", "Max concurrency", cxxopts::value<int>())
 				("v,verbose", "Verbose output", cxxopts::value<bool>());
 
@@ -140,13 +140,12 @@ namespace FPCFilter
 					throw std::invalid_argument("Sample radius cannot be less than 0");
 
 				isSampleRequested = true;
-
 			}
 
-			if (result.count("smooth_radius")) {
-				smooth_radius = result["smooth_radius"].as<double>();
+			if (result.count("smooth_factor")) {
+				smooth_factor = result["smooth_factor"].as<double>();
 
-				if (smooth_radius < 0)
+				if (smooth_factor < 0)
 					 throw std::invalid_argument("Sample radius cannot be less than 0");
 				
 				isSmoothRequested = true;
