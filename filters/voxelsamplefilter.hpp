@@ -50,15 +50,22 @@ namespace FPCFilter {
         bool isVerbose;
 
     public:
+        // Radius is the voxel grid cell size
         VoxelSampleFilter(double radius, std::ostream& logstream, bool isVerbose) : originX(0), originY(0), originZ(0),
-                isVerbose(isVerbose), log(logstream), radius(radius), cell(radius * std::sqrt(3.0)) {
-            radiusSqr = radius * radius;
+                isVerbose(isVerbose), log(logstream) {
+            updateCellRadius(radius);
         }
         
         void run(PlyFile& file) {
             auto points = file.points;
             auto extras = file.extras;
             PointCloud pointCloud(points);
+
+            if (file.spacing > cell) {
+                log << " !> Warning: input point cloud has a spacing larger than the voxel grid cell size" << std::endl;
+                log << " !>          Using spacing as cell size" << std::endl;
+                updateCellRadius(file.spacing/2.0);
+            }
 
             const auto cnt = points.size();
 
@@ -156,6 +163,12 @@ namespace FPCFilter {
         }
 
     private:
+        void updateCellRadius(double newRadius) {
+            cell = newRadius * 2;
+            radius = newRadius * std::sqrt(3.0);
+            radiusSqr = newRadius * newRadius * 3;
+        }
+
         inline int fast_floor(double x)
         {
             int i = (int)x; /* truncate */

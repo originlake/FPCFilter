@@ -74,6 +74,9 @@ namespace FPCFilter
 					log << " ?> Loaded " << this->ply->points.size() << " points (cropped) in " << diff.count() << "s" << std::endl;
 				}
 
+				FastStats fastStats(log, isVerbose);
+				fastStats.run(*this->ply);
+
 				return;
 			}
 
